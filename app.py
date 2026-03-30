@@ -4,8 +4,7 @@ import numpy as np
 import sqlite3
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
-import shap
-
+import os
 
 # ---------------------------------------------------------------
 # PAGE CONFIG
@@ -367,7 +366,7 @@ st.sidebar.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 # DATABASE  ← ALL CHANGES ARE IN THIS BLOCK
 # ---------------------------------------------------------------
 # CHANGE 1: Use sqlite3.connect() with a local file path (no DSN / credentials needed)
-DB_PATH = "startups.db"
+DB_PATH = os.path.join(os.getcwd(), "startups.db")
 
 try:
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
@@ -820,27 +819,6 @@ elif page == "🧠  AI Risk Mentor":
             ph += stat_card(cls.upper(), f"{pct}%","model confidence",c2,"")
         ph += "</div>"
         st.markdown(ph, unsafe_allow_html=True)
-
-        # SHAP
-        section_header("Feature Impact (SHAP)","📊","#00FFFF")
-        try:
-            explainer = shap.TreeExplainer(clf)
-            sv = explainer.shap_values(X_in)
-            if isinstance(sv, list):
-                pi = clf.predict(X_in)[0]; sarr = sv[pi][0]
-            elif sv.ndim == 3:
-                pi = clf.predict(X_in)[0]; sarr = sv[0,:,pi]
-            else:
-                sarr = sv[0]
-            shap_df = pd.DataFrame({"Feature":feature_cols,"SHAP Impact":sarr})\
-                        .sort_values("SHAP Impact",key=abs,ascending=False).head(8)
-            st.markdown('<div style="background:#0A0A12;'
-                        'border:1px solid #1C1C30;border-radius:6px;padding:16px 20px 8px;">',
-                        unsafe_allow_html=True)
-            st.bar_chart(shap_df.set_index("Feature")["SHAP Impact"], color="#00FFFF", height=220)
-            st.markdown('</div>', unsafe_allow_html=True)
-        except Exception as e:
-            st.warning(f"SHAP unavailable: {e}")
 
         # Risk factors
         section_header("Risk Factors Detected","⚠️","#FF2079")

@@ -1,5 +1,4 @@
-instantclient_23_0/
-.streamlit/secrets.toml
+startups.db
 __pycache__/
 *.pyc
 .env
