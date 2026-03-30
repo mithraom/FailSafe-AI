@@ -3,3 +3,4 @@ __pycache__/
 *.pyc
 .env
 instantclient_23_0/
+.streamlit/secrets.toml
