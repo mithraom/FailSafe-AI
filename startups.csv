@@ -1,0 +1,21 @@
+Startup,Industry,Funding (₹),Monthly Revenue,Monthly Expenses,Team Size,Growth Rate (%),Market Risk,Months Runway,Risk Score,Risk Level,Premium Amount,Estimated Payout
+EduSpark,EdTech,300000,40000,90000.0,5,-3,High,3,153000.0,High Risk 🔴,36000.0,120000.0
+MediCore,HealthTech,700000,150000,130000.0,12,12,Low,8,0.0,Low Risk 🟢,56000.0,420000.0
+GreenNova,AgriTech,200000,30000,60000.0,4,-5,High,2,137000.0,High Risk 🔴,24000.0,80000.0
+ShopEase,E-Commerce,600000,180000,160000.0,10,8,Medium,7,20000.0,Low Risk 🟢,48000.0,360000.0
+AutoNext,AI,800000,200000,250000.0,15,6,Medium,6,90000.0,Moderate Risk 🟡,80000.0,400000.0
+FoodLoop,FoodTech,250000,50000,95000.0,6,-4,High,3,147000.0,High Risk 🔴,30000.0,100000.0
+FinEdge,FinTech,900000,220000,210000.0,14,9,Low,9,0.0,Low Risk 🟢,72000.0,540000.0
+HealthBridge,HealthTech,400000,70000,85000.0,7,2,Medium,5,61000.0,Moderate Risk 🟡,40000.0,200000.0
+AgroLife,AgriTech,350000,45000,80000.0,6,-2,High,3,135000.0,High Risk 🔴,42000.0,140000.0
+QuickCart,E-Commerce,750000,190000,170000.0,11,10,Low,8,0.0,Low Risk 🟢,60000.0,450000.0
+AIWorks,AI,1000000,300000,280000.0,18,15,Low,10,0.0,Low Risk 🟢,80000.0,600000.0
+LearnX,EdTech,280000,60000,70000.0,5,1,Medium,4,60000.0,Moderate Risk 🟡,28000.0,140000.0
+FarmEdge,AgriTech,220000,25000,50000.0,4,-6,High,2,133000.0,High Risk 🔴,26400.0,88000.0
+MediQuick,HealthTech,650000,140000,150000.0,9,4,Medium,6,52000.0,Moderate Risk 🟡,65000.0,325000.0
+ShopSmart,E-Commerce,500000,130000,120000.0,8,7,Low,7,4000.0,Low Risk 🟢,40000.0,300000.0
+AutoDrive,AI,850000,210000,260000.0,16,-1,Medium,5,91000.0,Moderate Risk 🟡,85000.0,425000.0
+FoodRush,FoodTech,300000,55000,100000.0,6,-3,High,3,146000.0,High Risk 🔴,36000.0,120000.0
+FinPulse,FinTech,920000,250000,230000.0,15,11,Low,9,0.0,Low Risk 🟢,73600.0,552000.0
+meghaaassociates,textile ,600000,300000,10.0,12,1,Low,1000000,0.0,Low Risk 🟢,48000.0,360000.0
+MD fashion,jewelry,500000,300000,10.0,12,1,Low,1000000,0.0,Low Risk 🟢,40000.0,300000.0

@@ -1,0 +1,5 @@
+instantclient_23_0/
+.streamlit/secrets.toml
+__pycache__/
+*.pyc
+.env
