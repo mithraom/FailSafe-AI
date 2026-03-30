@@ -1,10 +1,11 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import oracledb
+import sqlite3
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import LabelEncoder
 import shap
+
 
 # ---------------------------------------------------------------
 # PAGE CONFIG
@@ -15,7 +16,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
 # ---------------------------------------------------------------
 # GLOBAL CSS — Pure Neon theme
 # ---------------------------------------------------------------
@@ -364,14 +364,51 @@ page = st.sidebar.radio(
 st.sidebar.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
 # ---------------------------------------------------------------
-# DATABASE
+# DATABASE  ← ALL CHANGES ARE IN THIS BLOCK
 # ---------------------------------------------------------------
-DB_USER = "SYSTEM"
-DB_PASSWORD = "orcl"
-DB_DSN = "localhost/XE"
+# CHANGE 1: Use sqlite3.connect() with a local file path (no DSN / credentials needed)
+DB_PATH = "startups.db"
 
 try:
-    conn = oracledb.connect(user=DB_USER, password=DB_PASSWORD, dsn=DB_DSN)
+    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+    cursor = conn.cursor()
+
+    # CHANGE 2: CREATE TABLE IF NOT EXISTS with SQLite types (no schema prefix)
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS STARTUPS (
+        STARTUP         TEXT PRIMARY KEY,
+        INDUSTRY        TEXT,
+        MONTHLYREVENUE  INTEGER,
+        MONTHLYEXPENSES INTEGER,
+        GROWTHRATE      REAL,
+        MONTHSRUNWAY    INTEGER,
+        TEAMSIZE        INTEGER,
+        MARKETRISK      TEXT,
+        FUNDING         INTEGER
+    )
+    """)
+    conn.commit()
+
+    # Check if table is empty
+    cursor.execute("SELECT COUNT(*) FROM STARTUPS")
+    count = cursor.fetchone()[0]
+
+    # CHANGE 3: INSERT uses plain table name (no SYSTEM. prefix) and ? placeholders
+    if count == 0:
+        cursor.executemany(
+            """INSERT INTO STARTUPS
+               (STARTUP, INDUSTRY, MONTHLYREVENUE, MONTHLYEXPENSES,
+                GROWTHRATE, MONTHSRUNWAY, TEAMSIZE, MARKETRISK, FUNDING)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            [
+                ('AlphaTech', 'Tech',   50000, 70000, -5.0, 4, 6,  'High',   1000000),
+                ('GreenFoods','Food',   80000, 60000, 10.0, 8, 12, 'Low',    1500000),
+                ('MediCare',  'Health', 40000, 50000, -8.0, 3, 5,  'Medium',  800000),
+            ]
+        )
+        conn.commit()
+
+    # UI Success message
     st.sidebar.markdown("""
     <div style="background:rgba(57,255,20,0.07);border:1px solid rgba(57,255,20,0.3);
                 border-radius:4px;padding:10px 14px;display:flex;align-items:center;gap:8px;
@@ -379,14 +416,15 @@ try:
         <span style="color:#39FF14;font-size:8px;text-shadow:0 0 6px #39FF14;">●</span>
         <span style="font-family:'Space Mono',monospace;font-size:10px;
                      color:#39FF14;font-weight:700;text-shadow:0 0 6px rgba(57,255,20,0.4);
-                     letter-spacing:0.06em;">ORACLE DB ONLINE</span>
+                     letter-spacing:0.06em;">SQLITE DB ONLINE</span>
     </div>""", unsafe_allow_html=True)
+
 except Exception as e:
     st.sidebar.markdown(f"""
     <div style="background:rgba(255,32,121,0.07);border:1px solid rgba(255,32,121,0.3);
                 border-radius:4px;padding:10px 14px;">
         <span style="font-family:'Space Mono',monospace;font-size:10px;color:#FF2079;
-                     text-shadow:0 0 6px rgba(255,32,121,0.4);">✗ DB OFFLINE</span>
+                     text-shadow:0 0 6px rgba(255,32,121,0.4);">✗ DB OFFLINE: {e}</span>
     </div>""", unsafe_allow_html=True)
     st.stop()
 
@@ -394,7 +432,7 @@ except Exception as e:
 # LOAD & PROCESS DATA
 # ---------------------------------------------------------------
 try:
-    df = pd.read_sql("SELECT * FROM SYSTEM.STARTUPS", con=conn)
+    df = pd.read_sql("SELECT * FROM STARTUPS", con=conn)
 except Exception as e:
     st.error(f"Database Error: {e}"); st.stop()
 
@@ -606,19 +644,26 @@ if page == "📊  Main Dashboard":
             new_market   = st.selectbox("Market Risk", ["Low","Medium","High"], key="add_market")
             new_funding  = st.number_input("Total Funding (₹)", min_value=10000, value=1000000, key="add_fund")
         if st.button("➕  Add Startup", key="add_btn"):
-            if new_name=="" or new_industry=="": st.warning("Fill all required fields.")
-            elif new_name in df["Startup"].values: st.error("Startup already exists.")
+            if new_name=="" or new_industry=="":
+                st.warning("Fill all required fields.")
+            elif new_name in df["Startup"].values:
+                st.error("Startup already exists.")
             else:
                 try:
-                    cursor = conn.cursor()
-                    cursor.execute("""INSERT INTO SYSTEM.STARTUPS
-                        (STARTUP,INDUSTRY,MONTHLYREVENUE,MONTHLYEXPENSES,GROWTHRATE,
-                         MONTHSRUNWAY,TEAMSIZE,MARKETRISK,FUNDING)
-                        VALUES(:1,:2,:3,:4,:5,:6,:7,:8,:9)""",
-                        [new_name,new_industry,new_revenue,new_expenses,
-                         new_growth,new_runway,new_team,new_market,new_funding])
-                    conn.commit(); st.success("Startup added successfully.")
-                except Exception as e: st.error(f"Failed: {e}")
+                    # CHANGE 4: Plain table name (no SYSTEM. prefix), ? placeholders (not :1,:2,...)
+                    cursor.execute(
+                        """INSERT INTO STARTUPS
+                           (STARTUP, INDUSTRY, MONTHLYREVENUE, MONTHLYEXPENSES,
+                            GROWTHRATE, MONTHSRUNWAY, TEAMSIZE, MARKETRISK, FUNDING)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (new_name, new_industry, new_revenue, new_expenses,
+                         new_growth, new_runway, new_team, new_market, new_funding)
+                    )
+                    conn.commit()
+                    st.success("Startup added successfully.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Failed: {e}")
 
     with tab3:
         st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
@@ -640,20 +685,29 @@ if page == "📊  Main Dashboard":
         with col1:
             if st.button("💾  Update", key="upd_btn"):
                 try:
-                    cursor = conn.cursor()
-                    cursor.execute("""UPDATE SYSTEM.STARTUPS SET
-                        INDUSTRY=:1,MONTHLYREVENUE=:2,MONTHLYEXPENSES=:3,GROWTHRATE=:4,
-                        MONTHSRUNWAY=:5,TEAMSIZE=:6,MARKETRISK=:7,FUNDING=:8 WHERE STARTUP=:9""",
-                        [ui,ur,ue,ug,un,ut,um,uf,selected])
-                    conn.commit(); st.success("Updated.")
-                except Exception as e: st.error(f"Failed: {e}")
+                    # CHANGE 5: Plain table name, ? placeholders (not :1,:2,...)
+                    cursor.execute(
+                        """UPDATE STARTUPS SET
+                           INDUSTRY=?, MONTHLYREVENUE=?, MONTHLYEXPENSES=?, GROWTHRATE=?,
+                           MONTHSRUNWAY=?, TEAMSIZE=?, MARKETRISK=?, FUNDING=?
+                           WHERE STARTUP=?""",
+                        (ui, ur, ue, ug, un, ut, um, uf, selected)
+                    )
+                    conn.commit()
+                    st.success("Updated.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Failed: {e}")
         with col2:
             if st.button("🗑️  Delete", key="del_btn"):
                 try:
-                    cursor = conn.cursor()
-                    cursor.execute("DELETE FROM SYSTEM.STARTUPS WHERE STARTUP=:1",[selected])
-                    conn.commit(); st.success("Deleted.")
-                except Exception as e: st.error(f"Failed: {e}")
+                    # CHANGE 6: Plain table name, ? placeholder (not :1)
+                    cursor.execute("DELETE FROM STARTUPS WHERE STARTUP=?", (selected,))
+                    conn.commit()
+                    st.success("Deleted.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Failed: {e}")
 
     # Startup spotlight
     section_header("Startup Spotlight","🔍","#00FFFF")
