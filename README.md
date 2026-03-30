@@ -63,9 +63,4 @@ These inputs are used to:
 
 Streamlit App: http : https://failsafe-ai.streamlit.app/
 
----
-
-
-cd failsafe-ai
-pip install -r requirements.txt
-streamlit run app.py
+n app.py
